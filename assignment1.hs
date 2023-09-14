@@ -45,7 +45,10 @@ printLine = (++ "+") . ("+" ++) . intercalate "+" . map printWord
 -- * Exercise 3
 
 printField :: Int -> String -> String
-printField = undefined
+printField len content
+  | all isDigit content = replicate (len - length content) ' ' ++ content
+  | otherwise           = content ++ replicate(len - length content) ' ' 
+
 -- * Exercise 4
                
 printRow :: [(Int, String)] -> String
