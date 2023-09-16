@@ -3,6 +3,7 @@
 {- This is a framework in which all functions to be written are "undefined".  -
  - Note that in most cases parameters, pattern-matching and guards have been  -
  - omitted! You will have to add those yourself.                              -}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 import Data.Char
 import Data.List
@@ -47,23 +48,28 @@ printLine = (++ "+") . ("+" ++) . intercalate "+" . map printWord
 printField :: Int -> String -> String
 printField len content
   | all isDigit content = replicate (len - length content) ' ' ++ content
-  | otherwise           = content ++ replicate(len - length content) ' ' 
+  | otherwise           = content ++ replicate(len - length content) ' '
 
--- * Exercise 4
-               
+-- * Exercise 4              
+
 printRow :: [(Int, String)] -> String
-printRow = undefined
+printRow = ("|" ++ ) . (++ "|") . intercalate "|" . map (uncurry printField)
 
 -- * Exercise 5
 
 columnWidths :: Table -> [Int]
-columnWidths = undefined
+columnWidths = map (maximum . map length) . transpose
 
 -- * Exercise 6
 
 printTable :: Table -> [String]
 printTable table@(header:rows)
-    = undefined
+  = let colWidth = columnWidths table
+        line = printLine colWidth
+        headerContentsUpper = map(map toUpper) header
+        headerRow = printRow (zip colWidth headerContentsUpper)
+        restOfRows = map (printRow . zip colWidth ) rows
+    in line : headerRow : line : restOfRows ++ [line]
 
 -- | Querying
 
