@@ -76,11 +76,41 @@ printTable table@(header:rows)
 -- * Exercise 7
 
 select :: Field -> Field -> Table -> Table
-select column value table@(header:rows)
-    = undefined
-
+select column value table@(header:rows) = maybe table filterTableOrFullTable columnIndex
+    where
+        -- Index of the column to match
+        columnIndex             = elemIndex column header
+        -- Table with rows not matching the predicate filtered out
+        filterTable index       = filter (\row -> row !! index == map toLower value) rows
+        -- If the filtered list is empty, return the full table, otherwhise return the filtered table
+        filterTableOrFullTable index
+            | null filtered  = table
+            | otherwise = filtered
+            where
+                -- The table filtered by column value
+                filtered = filterTable index
 -- * Exercise 8
-
 project :: [Field] -> Table -> Table
-project columns table@(header:_)
-    = undefined
+project columns table@(header:_) = transpose $ removeIndex $ sortByProjectionIndex $ filteredCols $ addIndex $ transpose table
+    where
+        -- Sort the list by the projection order requested
+        sortByProjectionIndex :: [([a], Int)] -> [([a], Int)]
+        sortByProjectionIndex = sortBy (\(_, a) (_, b) -> compare (projectionIndexOf a) (projectionIndexOf b))
+            where   indexes = colIndexesToInclude
+                    projectionIndexOf index = fromJust $ elemIndex index indexes
+
+        -- Take a list of items with indexes and return only the item
+        removeIndex :: [([a], Int)] -> [[a]]
+        removeIndex = map fst -- Equal to (a, _) -> a
+
+        -- Filter the a list to include only the columns in the projection
+        filteredCols :: [([a], Int)] -> [([a], Int)]
+        filteredCols = filter (\(_, index) -> index `elem` colIndexesToInclude)
+
+        -- Add an index to each item in the list
+        addIndex :: [[a]] -> [([a], Int)]
+        addIndex x = zip x [0..]
+
+        -- Compute the indexes of columns to keep
+        colIndexesToInclude :: [Int]
+        colIndexesToInclude = mapMaybe (`elemIndex` header) columns
