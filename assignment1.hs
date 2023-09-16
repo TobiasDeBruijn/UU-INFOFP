@@ -70,9 +70,19 @@ printTable table@(header:rows)
 -- * Exercise 7
 
 select :: Field -> Field -> Table -> Table
-select column value table@(header:rows)
-    = undefined
-
+select column value table@(header:rows) = maybe table filterTableOrFullTable columnIndex
+    where 
+        -- Index of the column to match
+        columnIndex             = elemIndex column header
+        -- Table with rows not matching the predicate filtered out
+        filterTable index       = filter(\row -> row !! index == value) rows
+        -- If the filtered list is empty, return the full table, otherwhise return the filtered table
+        filterTableOrFullTable index
+            | null filtered  = table
+            | otherwise = filtered
+            where
+                -- The table filtered by column value
+                filtered = filterTable index
 -- * Exercise 8
 
 project :: [Field] -> Table -> Table
