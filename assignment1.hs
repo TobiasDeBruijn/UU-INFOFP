@@ -47,10 +47,10 @@ printLine = (++ "+") . ("+" ++) . intercalate "+" . map printWord
 printField :: Int -> String -> String
 printField len content
   | all isDigit content = replicate (len - length content) ' ' ++ content
-  | otherwise           = content ++ replicate(len - length content) ' ' 
+  | otherwise           = content ++ replicate (len - length content) ' '
 
 -- * Exercise 4
-               
+
 printRow :: [(Int, String)] -> String
 printRow = undefined
 
@@ -71,11 +71,11 @@ printTable table@(header:rows)
 
 select :: Field -> Field -> Table -> Table
 select column value table@(header:rows) = maybe table filterTableOrFullTable columnIndex
-    where 
+    where
         -- Index of the column to match
         columnIndex             = elemIndex column header
         -- Table with rows not matching the predicate filtered out
-        filterTable index       = filter(\row -> row !! index == value) rows
+        filterTable index       = filter (\row -> row !! index == map toLower value) rows
         -- If the filtered list is empty, return the full table, otherwhise return the filtered table
         filterTableOrFullTable index
             | null filtered  = table
@@ -84,7 +84,27 @@ select column value table@(header:rows) = maybe table filterTableOrFullTable col
                 -- The table filtered by column value
                 filtered = filterTable index
 -- * Exercise 8
-
 project :: [Field] -> Table -> Table
-project columns table@(header:_)
-    = undefined
+project columns table@(header:_) = transpose $ removeIndex $ sortByProjectionIndex $ filteredCols $ addIndex $ transpose table
+    where
+        -- Sort the list by the projection order requested
+        sortByProjectionIndex :: [([Field], Int)] -> [([Field], Int)]
+        sortByProjectionIndex = sortBy (\(_, indexOfA) (_, indexOfB) -> compare (projectionIndexOf indexOfA) (projectionIndexOf indexOfB))
+            where   indexes = colIndexesToInclude
+                    projectionIndexOf index = fromJust $ elemIndex index indexes
+
+        -- Take a list of items with indexes and return only the item
+        removeIndex :: [([a], Int)] -> [[a]]
+        removeIndex = map fst -- Equal to (a, _) -> a
+
+        -- Filter the a list to include only the columns in the projection
+        filteredCols :: [([a], Int)] -> [([a], Int)]
+        filteredCols = filter (\(_, index) -> index `elem` colIndexesToInclude)
+
+        -- Add an index to each item in the list
+        addIndex :: [[Field]] -> [([Field], Int)]
+        addIndex x = zip x [0..]
+
+        -- Compute the indexes of columns to keep
+        colIndexesToInclude :: [Int]
+        colIndexesToInclude = mapMaybe (`elemIndex` header) columns
