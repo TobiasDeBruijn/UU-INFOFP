@@ -1,10 +1,5 @@
 -- module Main where
 
-{- This is a framework in which all functions to be written are "undefined".  -
- - Note that in most cases parameters, pattern-matching and guards have been  -
- - omitted! You will have to add those yourself.                              -}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
-
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -17,8 +12,8 @@ type Table = [Row]
 
 -- | Main
 
--- main :: IO ()
--- main = interact (unlines . exercise . lines)
+main :: IO ()
+main = interact (unlines . exercise . lines)
 
 exercise :: [String] -> [String]
 exercise = printTable
@@ -48,7 +43,7 @@ printLine = (++ "+") . ("+" ++) . intercalate "+" . map printWord
 printField :: Int -> String -> String
 printField len content
   | all isDigit content = replicate (len - length content) ' ' ++ content
-  | otherwise           = content ++ replicate(len - length content) ' '
+  | otherwise           = content ++ replicate (len - length content) ' '
 
 -- * Exercise 4              
 
@@ -63,13 +58,14 @@ columnWidths = map (maximum . map length) . transpose
 -- * Exercise 6
 
 printTable :: Table -> [String]
-printTable table@(header:rows)
-  = let colWidth = columnWidths table
-        line = printLine colWidth
-        headerContentsUpper = map(map toUpper) header
-        headerRow = printRow (zip colWidth headerContentsUpper)
-        restOfRows = map (printRow . zip colWidth ) rows
-    in line : headerRow : line : restOfRows ++ [line]
+printTable [] = error "Cannot print empty table";
+printTable table@(header:rows) = line : headerRow : line : restOfRows ++ [line]
+    where
+        colWidth            = columnWidths table
+        line                = printLine colWidth
+        headerContentsUpper = map (map toUpper) header
+        headerRow           = printRow (zip colWidth headerContentsUpper)
+        restOfRows          = map (printRow . zip colWidth ) rows
 
 -- | Querying
 
@@ -84,8 +80,8 @@ select column value table@(header:rows) = maybe table filterTableOrFullTable col
         filterTable index       = filter (\row -> row !! index == map toLower value) rows
         -- If the filtered list is empty, return the full table, otherwhise return the filtered table
         filterTableOrFullTable index
-            | null filtered  = table
-            | otherwise = filtered
+            | length filtered == 0  = table
+            | otherwise = header : filtered
             where
                 -- The table filtered by column value
                 filtered = filterTable index
@@ -97,7 +93,7 @@ project columns table@(header:_) = transpose $ removeIndex $ sortByProjectionInd
         sortByProjectionIndex :: [([a], Int)] -> [([a], Int)]
         sortByProjectionIndex = sortBy (\(_, a) (_, b) -> compare (projectionIndexOf a) (projectionIndexOf b))
             where   indexes = colIndexesToInclude
-                    projectionIndexOf index = fromJust $ elemIndex index indexes
+                    projectionIndexOf index = elemIndex index indexes
 
         -- Take a list of items with indexes and return only the item
         removeIndex :: [([a], Int)] -> [[a]]
