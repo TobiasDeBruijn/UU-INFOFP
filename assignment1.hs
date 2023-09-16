@@ -1,3 +1,5 @@
+-- Copyright 2023 Tobias de Bruijn
+
 -- module Main where
 
 import Data.Char
