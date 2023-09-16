@@ -88,8 +88,8 @@ project :: [Field] -> Table -> Table
 project columns table@(header:_) = transpose $ removeIndex $ sortByProjectionIndex $ filteredCols $ addIndex $ transpose table
     where
         -- Sort the list by the projection order requested
-        sortByProjectionIndex :: [([Field], Int)] -> [([Field], Int)]
-        sortByProjectionIndex = sortBy (\(_, indexOfA) (_, indexOfB) -> compare (projectionIndexOf indexOfA) (projectionIndexOf indexOfB))
+        sortByProjectionIndex :: [([a], Int)] -> [([a], Int)]
+        sortByProjectionIndex = sortBy (\(_, a) (_, b) -> compare (projectionIndexOf a) (projectionIndexOf b))
             where   indexes = colIndexesToInclude
                     projectionIndexOf index = fromJust $ elemIndex index indexes
 
@@ -102,7 +102,7 @@ project columns table@(header:_) = transpose $ removeIndex $ sortByProjectionInd
         filteredCols = filter (\(_, index) -> index `elem` colIndexesToInclude)
 
         -- Add an index to each item in the list
-        addIndex :: [[Field]] -> [([Field], Int)]
+        addIndex :: [[a]] -> [([a], Int)]
         addIndex x = zip x [0..]
 
         -- Compute the indexes of columns to keep
