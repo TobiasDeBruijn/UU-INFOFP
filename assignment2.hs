@@ -57,7 +57,8 @@ instance Show Player where
 -- Exercise 3
     
 nextPlayer :: Player -> Player
-nextPlayer = undefined
+nextPlayer P1 = P2
+nextPlayer P2 = P1
 
 -- * Board
 
@@ -72,7 +73,8 @@ instance Show Field where
 -- Exercise 4
 
 symbol :: Player -> Field
-symbol = undefined
+symbol P1 = X
+symbol P2 = O
 
 type Row   = (Field, Field, Field)
 type Board = (Row, Row, Row)
@@ -80,20 +82,32 @@ type Board = (Row, Row, Row)
 -- Exercise 5
 
 verticals :: Board -> (Row, Row, Row)
-verticals = undefined
+verticals ((r1f1, r1f2, r1f3), (r2f1, r2f2, r2f3), (r3f1, r3f2, r3f3)) 
+    = (
+        (r1f1, r2f1, r3f1), 
+        (r1f2, r2f2, r3f2), 
+        (r1f3, r2f3, r3f3)
+    )
+
 
 diagonals :: Board -> (Row, Row)
-diagonals = undefined
+diagonals ((r1f1, _, r1f3), (_, r2f2, _), (r3f1, _, r3f3))
+    = (
+        (r1f1, r2f2, r3f3), 
+        (r1f3, r2f2, r3f1)
+    )
 
 -- Exercise 6
 
 emptyBoard :: Board
-emptyBoard = undefined
+emptyBoard = ((B, B, B), (B, B, B), (B, B, B))
 
 -- Exercise 7
 
 printBoard :: Board -> String
-printBoard = undefined
+printBoard (r1, r2, r3) = printRow r1 ++ printLine ++ printRow r2 ++ printLine ++ printRow r3 ++ "\n" where
+    printLine = "\n-+-+-\n"
+    printRow (f1, f2, f3) = show f1 ++ "|" ++ show f2 ++ "|" ++ show f3 
 -- | Move generation
              
 -- Exercise 8
