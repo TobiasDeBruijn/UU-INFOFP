@@ -113,14 +113,63 @@ printBoard (r1, r2, r3) = printRow r1 ++ printLine ++ printRow r2 ++ printLine +
 -- Exercise 8
              
 moves :: Player -> Board -> [Board]
-moves = undefined
+moves player (r1, r2, r3) = undefined where
+    
+    movesRow :: Player -> Row -> [Row]
+    movesRow player (f1, f2, f3)
+        | canMoveField f1 && canMoveField f2 && canMoveField f3 
+            = [(symbol player, f2, f3), (f1, symbol player, f3), (f1, f2, symbol player)]
+        | canMoveField f1 && canMoveField f2 
+            = [(symbol player, f2, f3), (f1, symbol player, f3)]
+        | canMoveField f2 && canMoveField f3
+            = [(f1, symbol player, f3), (f1, f2, symbol player)]
+        | canMoveField f1 && canMoveField f3
+            = [(symbol player, f2, f3), (f1, f2, symbol player)]
+        | otherwise = []
+
+    canMoveField :: Field -> Bool
+    canMoveField field = field == B
 
 -- | Gametree generation
 
 -- Exercise 9
 
 hasWinner :: Board -> Maybe Player
-hasWinner = undefined
+hasWinner board
+    | hasPlayerWon P1 board = Just P1
+    | hasPlayerWon P2 board = Just P2
+    | otherwise = Nothing
+    
+    where
+    -- Check whether the player has won the game
+    hasPlayerWon :: Player -> Board -> Bool
+    hasPlayerWon player board 
+        -- Verticals
+        = checkTriple (verticals board) player 
+        -- Horizontals
+        || checkTriple board player 
+        -- Diagonals
+        || checkDouble (diagonals board) player
+
+    -- Check whether a player has won any of the rows in the double
+    checkDouble :: (Row, Row) -> Player -> Bool
+    checkDouble (r1, r2) player 
+        = hasPlayerWonRow player r1 
+        || hasPlayerWonRow player r2
+
+    -- Check whether the player has won any of the rows in the triple
+    checkTriple :: (Row, Row, Row) -> Player -> Bool
+    checkTriple (r1, r2, r3) player 
+        = hasPlayerWonRow player r1 
+        || hasPlayerWonRow player r2 
+        || hasPlayerWonRow player r3
+
+    -- Check whether all of the symbols in the row belon to the players
+    hasPlayerWonRow :: Player -> Row -> Bool
+    hasPlayerWonRow player (f1, f2, f3) 
+        = (f1 == symbol player) 
+        && (f2 == symbol player) 
+        && (f3 == symbol player) 
 
 -- Exercise 10
 
