@@ -191,7 +191,7 @@ gameTree player board
 -- Exercise 11
 
 gameTreeComplexity :: Int
-gameTreeComplexity = undefined
+gameTreeComplexity = leaves $ gameTree P1 emptyBoard
 
 -- | Minimax
 
