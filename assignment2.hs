@@ -174,7 +174,17 @@ hasWinner board
 -- Exercise 10
 
 gameTree :: Player -> Board -> Rose Board
-gameTree = undefined
+gameTree player board 
+    | isJust (hasWinner board) = MkRose board []
+    | otherwise = if isFull board then MkRose board [] else MkRose board (map(gameTree player) (moves player board))
+        where
+            isFull :: Board -> Bool
+            isFull board = B `notElem` elements board
+
+            elements :: Board -> [Field]
+            elements ((r1f1, r1f2, r1f3), (r2f1, r2f2, r2f3), (r3f1, r3f2, r3f3)) = [r1f1, r1f2, r1f3, r2f1, r2f2, r2f3, r3f1, r3f1, r3f2, r3f3]
+            
+        
 
 -- | Game complexity
 
