@@ -198,7 +198,16 @@ gameTreeComplexity = leaves $ gameTree P1 emptyBoard
 -- Exercise 12
 
 minimax :: Player -> Rose Board -> Rose Int
-minimax = undefined
+minimax player (MkRose currentBoard []) = MkRose computeScore [] where
+    computeScore = case hasWinner currentBoard of
+        Just playerWon -> if playerWon == player then 1 else -1
+        Nothing -> 0
+minimax player (MkRose currentBoard children) = MkRose (internalNodeScore player) (map (minimax (nextPlayer player)) children)
+    where
+        internalNodeScore :: Player -> Int
+        internalNodeScore p 
+            | player == p = 1
+            | otherwise = -1
 
 -- * Lazier minimum and maximums
 
