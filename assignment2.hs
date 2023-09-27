@@ -113,7 +113,7 @@ printBoard (r1, r2, r3) = printRow r1 ++ printLine ++ printRow r2 ++ printLine +
 -- Exercise 8
              
 moves :: Player -> Board -> [Board]
-moves player (r1, r2, r3) = undefined where
+moves player (r1, r2, r3) = concat $ zipWith (\f r -> map f $ movesRow player r) [(,r2,r3), (r1,,r3), (r1,r2,)] [r1, r2, r3] where
     
     movesRow :: Player -> Row -> [Row]
     movesRow player (f1, f2, f3)
@@ -125,6 +125,13 @@ moves player (r1, r2, r3) = undefined where
             = [(f1, symbol player, f3), (f1, f2, symbol player)]
         | canMoveField f1 && canMoveField f3
             = [(symbol player, f2, f3), (f1, f2, symbol player)]
+        | canMoveField f1
+            = [(symbol player, f2, f3)]
+        | canMoveField f2
+            = [(f1, symbol player, f3)]
+        | canMoveField f3
+            = [(f1, f2, symbol player)]
+    
         | otherwise = []
 
     canMoveField :: Field -> Bool
@@ -176,13 +183,11 @@ hasWinner board
 gameTree :: Player -> Board -> Rose Board
 gameTree player board 
     | isJust (hasWinner board) = MkRose board []
-    | otherwise = if isFull board then MkRose board [] else MkRose board (map(gameTree player) (moves player board))
+    | otherwise = MkRose board $ map(gameTree $ nextPlayer player) (moves player board)
         where
-            isFull :: Board -> Bool
-            isFull board = B `notElem` elements board
-
+            
             elements :: Board -> [Field]
-            elements ((r1f1, r1f2, r1f3), (r2f1, r2f2, r2f3), (r3f1, r3f2, r3f3)) = [r1f1, r1f2, r1f3, r2f1, r2f2, r2f3, r3f1, r3f1, r3f2, r3f3]
+            elements ((r1f1, r1f2, r1f3), (r2f1, r2f2, r2f3), (r3f1, r3f2, r3f3)) = [r1f1, r1f2, r1f3, r2f1, r2f2, r2f3, r3f1, r3f2, r3f3]
             
         
 
@@ -198,34 +203,59 @@ gameTreeComplexity = leaves $ gameTree P1 emptyBoard
 -- Exercise 12
 
 minimax :: Player -> Rose Board -> Rose Int
-minimax player (MkRose currentBoard []) = MkRose computeScore [] where
-    computeScore = case hasWinner currentBoard of
-        Just playerWon -> if playerWon == player then 1 else -1
-        Nothing -> 0
-minimax player (MkRose currentBoard children) = MkRose (internalNodeScore player) (map (minimax (nextPlayer player)) children)
+
+minimax originalPlayer board = minimax_inner originalPlayer board
     where
-        internalNodeScore :: Player -> Int
-        internalNodeScore p 
-            | player == p = 1
-            | otherwise = -1
+        minimax_inner :: Player -> Rose Board -> Rose Int
+        
+        minimax_inner player (MkRose currentBoard []) = MkRose computeScore [] where
+            computeScore = case hasWinner currentBoard of
+                Just playerWon -> if playerWon == originalPlayer then 1 else -1
+                Nothing -> 0
+        
+        minimax_inner player (MkRose currentBoard children) = MkRose (internalNodeScore children player) (minimaxResult children player)
+
+        minimaxResult :: [Rose Board] -> Player -> [Rose Int]
+        minimaxResult children player = map(minimax_inner (nextPlayer player)) children
+
+        internalNodeScore :: [Rose Board] -> Player -> Int
+        internalNodeScore children p 
+            | originalPlayer == p = maximum' $ map root (minimaxResult children p)
+            | otherwise = minimum' $ map root (minimaxResult children p)
 
 -- * Lazier minimum and maximums
 
 -- Exercise 13
 
 minimum' :: [Int] -> Int
-minimum' = undefined
+minimum' [x] = x
+minimum' [] = 0
+minimum' (x:xs)
+    | x == -1 = -1
+    | otherwise = min x (minimum' xs)
 
 maximum' :: [Int] -> Int
-maximum' = undefined
+maximum' [x] = x
+maximum' [] = 0
+maximum' (x:xs)
+    | x == 1 = 1
+    | otherwise = max x (maximum' xs)
 
 -- | Gameplay
 
 -- Exercise 14
 
 makeMove :: Player -> Board -> Maybe Board
-makeMove = undefined
-
+makeMove p b = 
+            let gameTreeResult  = gameTree p b
+                minimaxScore    = minimax p gameTreeResult
+                childs          = map root $ children minimaxScore
+                zippedTrees     = zip childs (moves p b)
+            in
+                case find(\(scoring, _) -> scoring == root minimaxScore) zippedTrees of
+                    Just (_, board) -> Just board
+                    Nothing -> Nothing
+        
 -- | Main
 
 data PlayerType = Human | Computer
